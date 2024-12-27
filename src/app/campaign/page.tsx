@@ -77,6 +77,50 @@ export default function CampaignPage() {
 			</div>
 
 			<div className='rounded-lg border bg-white'>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>NAME</TableHead>
+							<TableHead>STATUS</TableHead>
+							<TableHead>TOTAL LEAD</TableHead>
+							<TableHead>INVITE SENT</TableHead>
+							<TableHead>CONNECTION</TableHead>
+							<TableHead className='w-[50px]'></TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{campaigns.map((campaign) => (
+							<TableRow key={campaign.id}>
+								<TableCell>
+									<div className='flex flex-col'>
+										<span className='font-medium'>{campaign.name}</span>
+										<span className='text-sm text-gray-500'>{campaign.createdAt}</span>
+									</div>
+								</TableCell>
+								<TableCell>{campaign.status}</TableCell>
+								<TableCell>{campaign.totalLead}</TableCell>
+								<TableCell>{campaign.inviteSent}</TableCell>
+								<TableCell>{campaign.connection}</TableCell>
+								<TableCell>
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button variant='ghost' size='icon' className='h-8 w-8'>
+												<MoreVertical className='h-4 w-4' />
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align='end'>
+											<DropdownMenuItem>Go to Details</DropdownMenuItem>
+											<DropdownMenuItem>Start Campaign</DropdownMenuItem>
+											<DropdownMenuItem className='text-red-600'>
+												Delete Campaign
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
 				<div className='flex items-center justify-between border-t px-4 py-2'>
 					<div className='text-sm text-gray-500'>Showing 1-10 of 1000</div>
 					<div className='flex gap-2'>
