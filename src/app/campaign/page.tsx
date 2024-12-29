@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Search } from 'lucide-react';
+import { ChevronDown, Plus, Search, XCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,14 +18,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -133,40 +127,104 @@ const campaigns = [
 ];
 
 export default function CampaignPage() {
+	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
+	const [selectedFilter, setSelectedFilter] = useState('Filter by');
+	const [campaignOptions, setCampaignOptions] = useState<string[]>([]);
+	const [selectedCampaigns, setSelectedCampaigns] = useState([]);
+
+	useEffect(() => {
+		listCampaigns().then((paginatedCampaigns) => {
+			setCampaign(paginatedCampaigns);
+		});
+
+		distinctCampaignNames().then((campaignNames) => {
+			setCampaignOptions(campaignNames);
+		});
+	}, []);
+
 	return (
 		<div className='flex flex-col gap-4'>
-			<div className='flex items-center gap-4'>
-				<div className='relative flex-1'>
-					<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
-					<Input placeholder='Search Campaign' className='pl-8' />
+			<div className='flex lg:flex-row flex-col  justify-between'>
+				{/* <div className='grid lg:grid-cols-3 grid-cols-1 gap-2 items-center '> */}
+				<div className='lg:flex items-center '>
+					<div className='relative rounded-full mr-4 w-[350px] bg-gray-50'>
+						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
+						<Input placeholder='Search Campaign' className='pl-8 rounded-full' />
+					</div>
+
+					{/* Campaign Status Filter */}
+					<Select
+						value={selectedFilter}
+						onValueChange={setSelectedFilter}
+						defaultValue='Filter by'
+					>
+						<SelectTrigger className='w-[124px] mr-2 rounded-full text-gray-800'>
+							<SelectValue placeholder='Filter by' />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectGroup>
+								<SelectItem value='Filter by'>
+									{selectedFilter === 'Filter by' ? 'Filter by' : 'None'}
+								</SelectItem>
+								<SelectItem value='DRAFT'>Draft</SelectItem>
+								<SelectItem value='ACTIVE'>Active</SelectItem>
+								<SelectItem value='COMPLETED'>Completed</SelectItem>
+							</SelectGroup>
+						</SelectContent>
+					</Select>
+
+					{/* Campaign filter */}
+					<Popover>
+						<PopoverTrigger className='text-left text-gray-800 w-[190px] rounded-full  border-gray-300 border-solid border-[1px] py-2 px-3 text-sm font-medium flex items-center justify-between'>
+							Select Campaign
+							<ChevronDown className='h-4 w-4' color='#1f2937' />
+						</PopoverTrigger>
+						<PopoverContent side='bottom' align='end' className='w-[300px] p-1'>
+							<div className='relative w-full bg-gray-50 mb-2'>
+								<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
+								<Input
+									placeholder='Search Campaign'
+									className='pl-8 rounded-md focus-visible:outline-0 focus-visible:ring-[1px] focus-visible:ring-blue-600'
+								/>
+								<XCircle
+									className='absolute right-2.5 top-2.5 h-4 w-4 text-white z-10 hover:cursor-pointer'
+									fill='#9ca3af'
+								/>
+							</div>
+							<div className='p-4  text-gray-900 border-gray-200 border-[1px] rounded-md'>
+								<div className='mb-3'>
+									<Label className='text-sm font-semibold text-gray-900 '>
+										Select Campaign
+									</Label>
+								</div>
+
+								{campaignOptions?.length &&
+									campaignOptions.map((campaignOption, idx) => (
+										<div
+											className={
+												'flex items-center space-x-2 ' +
+												(campaignOptions.length - 1 == idx ? 'mb-0' : 'mb-5')
+											}
+										>
+											<Checkbox id='terms' className='bg-gray-50 shadow-none' />
+											<Label
+												htmlFor='terms'
+												className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+											>
+												{campaignOption}
+											</Label>
+										</div>
+									))}
+
+						</PopoverContent>
+							</div>
+						</PopoverContent>
+					</Popover>
 				</div>
-				<Select>
-					<SelectTrigger className='w-[180px]'>
-						<SelectValue placeholder='Filter by' />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectGroup>
-							<SelectItem value='draft'>Draft</SelectItem>
-							<SelectItem value='active'>Active</SelectItem>
-							<SelectItem value='completed'>Completed</SelectItem>
-						</SelectGroup>
-					</SelectContent>
-				</Select>
-				<Select>
-					<SelectTrigger className='w-[180px]'>
-						<SelectValue placeholder='Select Campaign' />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectGroup>
-							<SelectItem value='growth'>Growth Connection</SelectItem>
-							<SelectItem value='production'>Production house</SelectItem>
-							<SelectItem value='realestate'>Real Estate</SelectItem>
-						</SelectGroup>
-					</SelectContent>
-				</Select>
-				<Button className='gap-2'>
-					<Plus className='h-4 w-4' /> Create Campaign
-				</Button>
+				<div>
+					<Button className='gap-2 bg-indigo-700 rounded-full lg:mt-0 mt-2'>
+						<Plus className='h-4 w-4' /> Create Campaign
+					</Button>
 			</div>
 
 			{/* Campaigns */}
