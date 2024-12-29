@@ -1,5 +1,3 @@
-import { Bell } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -9,23 +7,23 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Navbar() {
 	return (
-		<div className='flex h-16 items-center justify-between border-b bg-white px-4'>
-			<h1 className='text-xl font-semibold'>Campaign</h1>
-			<div className='flex items-center gap-2'>
-				<Button variant='ghost' size='icon'>
-					<Bell className='h-5 w-5' />
-				</Button>
+		<div className='flex items-center justify-between border-b bg-white px-6 py-7'>
+			<h1 className='text-xl text-gray-900 font-semibold'>Campaign</h1>
+			<div className='flex items-center gap-4'>
+				<Avatar className='hover:cursor-pointer w-6 h-6'>
+					<AvatarImage src='headphones-icon.svg' />
+					<AvatarFallback>HS</AvatarFallback>
+				</Avatar>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button variant='ghost' className='h-8 w-8 rounded-full p-0'>
-							<span className='sr-only'>Open user menu</span>
-							<div className='flex h-8 w-8 items-center justify-center rounded-full bg-primary'>
-								<span className='text-sm font-medium text-primary-foreground'>D</span>
-							</div>
-						</Button>
+						<Avatar className='hover:cursor-pointer w-8 h-8'>
+							<AvatarImage src='navbar-avatar.png' />
+							<AvatarFallback>NR</AvatarFallback>
+						</Avatar>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align='end'>
 						<DropdownMenuLabel>My Account</DropdownMenuLabel>
