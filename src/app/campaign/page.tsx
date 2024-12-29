@@ -24,107 +24,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-const campaigns = [
-	{
-		id: 1,
-		name: 'Growth Connection',
-		createdAt: 'Create in August 2014',
-		status: 'Draft',
-		totalLead: 50,
-		inviteSent: 50,
-		connection: 50,
-	},
-	{
-		id: 2,
-		name: 'Market Expansion',
-		createdAt: 'Created in January 2019',
-		status: 'Active',
-		totalLead: 120,
-		inviteSent: 110,
-		connection: 100,
-	},
-	{
-		id: 3,
-		name: 'Brand Awareness',
-		createdAt: 'Created in March 2020',
-		status: 'Completed',
-		totalLead: 200,
-		inviteSent: 200,
-		connection: 150,
-	},
-	{
-		id: 4,
-		name: 'Product Launch',
-		createdAt: 'Created in July 2022',
-		status: 'Draft',
-		totalLead: 80,
-		inviteSent: 80,
-		connection: 70,
-	},
-	{
-		id: 5,
-		name: 'Customer Retention',
-		createdAt: 'Created in December 2021',
-		status: 'Active',
-		totalLead: 150,
-		inviteSent: 145,
-		connection: 140,
-	},
-	{
-		id: 6,
-		name: 'Networking Event',
-		createdAt: 'Created in April 2023',
-		status: 'Completed',
-		totalLead: 60,
-		inviteSent: 55,
-		connection: 50,
-	},
-	{
-		id: 7,
-		name: 'Partnership Outreach',
-		createdAt: 'Created in February 2022',
-		status: 'Active',
-		totalLead: 95,
-		inviteSent: 95,
-		connection: 90,
-	},
-	{
-		id: 8,
-		name: 'Seasonal Promotion',
-		createdAt: 'Created in October 2020',
-		status: 'Completed',
-		totalLead: 300,
-		inviteSent: 290,
-		connection: 275,
-	},
-	{
-		id: 9,
-		name: 'Customer Feedback',
-		createdAt: 'Created in May 2021',
-		status: 'Draft',
-		totalLead: 40,
-		inviteSent: 40,
-		connection: 30,
-	},
-	{
-		id: 10,
-		name: 'Sales Boost Campaign',
-		createdAt: 'Created in November 2018',
-		status: 'Active',
-		totalLead: 180,
-		inviteSent: 170,
-		connection: 160,
-	},
-	// {
-	// 	id: 11,
-	// 	name: 'Influencer Outreach',
-	// 	createdAt: 'Created in September 2023',
-	// 	status: 'Completed',
-	// 	totalLead: 75,
-	// 	inviteSent: 70,
-	// 	connection: 65,
-	// },
-];
+import { listCampaigns, distinctCampaignNames } from '@/actions';
+import { useState, useEffect } from 'react';
+import { PaginatedCampaignResponse } from '@/lib/types';
+import { capitalizeFirstLetter, getMonthYear } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
@@ -215,8 +120,6 @@ export default function CampaignPage() {
 											</Label>
 										</div>
 									))}
-
-						</PopoverContent>
 							</div>
 						</PopoverContent>
 					</Popover>
@@ -225,58 +128,14 @@ export default function CampaignPage() {
 					<Button className='gap-2 bg-indigo-700 rounded-full lg:mt-0 mt-2'>
 						<Plus className='h-4 w-4' /> Create Campaign
 					</Button>
+				</div>
 			</div>
 
 			{/* Campaigns */}
-			{/* <Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>NAME</TableHead>
-							<TableHead>STATUS</TableHead>
-							<TableHead>TOTAL LEAD</TableHead>
-							<TableHead>INVITE SENT</TableHead>
-							<TableHead>CONNECTION</TableHead>
-							<TableHead className='w-[50px]'></TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{campaigns.map((campaign) => (
-							<TableRow key={campaign.id}>
-								<TableCell>
-									<div className='flex flex-col'>
-										<span className='font-medium'>{campaign.name}</span>
-										<span className='text-sm text-gray-500'>{campaign.createdAt}</span>
-									</div>
-								</TableCell>
-								<TableCell>{campaign.status}</TableCell>
-								<TableCell>{campaign.totalLead}</TableCell>
-								<TableCell>{campaign.inviteSent}</TableCell>
-								<TableCell>{campaign.connection}</TableCell>
-								<TableCell>
-									<DropdownMenu>
-										<DropdownMenuTrigger asChild>
-											<Button variant='ghost' size='icon' className='h-8 w-8'>
-												<MoreVertical className='h-4 w-4' />
-											</Button>
-										</DropdownMenuTrigger>
-										<DropdownMenuContent align='end'>
-											<DropdownMenuItem>Go to Details</DropdownMenuItem>
-											<DropdownMenuItem>Start Campaign</DropdownMenuItem>
-											<DropdownMenuItem className='text-red-600'>
-												Delete Campaign
-											</DropdownMenuItem>
-										</DropdownMenuContent>
-									</DropdownMenu>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table> */}
-
 			{/* Table */}
 			<div className='text-gray-900'>
 				{/* Table headers */}
-				<div className='grid grid-cols-7 gap-4 p-4 rounded-xl bg-gray-50 border-gray-50 uppercase text-xs font-semibold text-gray-500'>
+				<div className='lg:grid hidden grid-cols-7 gap-4 p-4 rounded-xl bg-gray-50 border-gray-50 uppercase text-xs font-semibold text-gray-500'>
 					<div className='col-span-2'>Name</div>
 					<div>Status</div>
 					<div>Total Lead</div>
@@ -286,100 +145,146 @@ export default function CampaignPage() {
 				</div>
 
 				{/* Table rows */}
-				{campaigns.map((campaign) => (
-					<div
-						key={campaign.id}
-						className='grid grid-cols-7 gap-4 py-6 px-4 my-4 rounded-xl bg-white border border-gray-100 items-center'
-					>
-						<div className='col-span-2'>
-							<div className='flex items-center'>
-								<Avatar className='mr-3'>
-									<AvatarImage src='campaign-icon.svg' />
-									<AvatarFallback>CN</AvatarFallback>
-								</Avatar>
-								<div className='flex flex-col'>
-									<span className='leading-none text-sm font-semibold'>
-										{campaign.name}
-									</span>
-									<span className='text-gray-500 leading-none text-xs font-normal mt-1'>
-										{campaign.createdAt}
-									</span>
+				{campaign?.data?.length &&
+					campaign.data.map((campaign) => (
+						<div
+							key={campaign.id}
+							className='grid lg:grid-cols-7 grid-cols-1 gap-4 py-6 px-4 my-4 rounded-xl bg-white border border-gray-100 items-center'
+						>
+							<div className='col-span-2 '>
+								<div className='flex items-center'>
+									<Avatar className='mr-3'>
+										<AvatarImage src='campaign-icon.svg' />
+										<AvatarFallback>CN</AvatarFallback>
+									</Avatar>
+									<div className='flex flex-row justify-between'>
+										<div className='flex flex-col'>
+											<span className='leading-none text-sm font-semibold'>
+												{campaign.name}
+											</span>
+											<span className='text-gray-500 leading-none text-xs font-normal mt-1'>
+												{getMonthYear(new Date(campaign.createdAt))}
+											</span>
+										</div>
+										<div className='lg:hidden visible'>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild className='hover:cursor-pointer'>
+													<Avatar className='mr-2 w-10'>
+														<AvatarImage src='vertical-dots-icon.svg' />
+														<AvatarFallback>VS</AvatarFallback>
+													</Avatar>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent
+													align='end'
+													className='w-[224px] border-none rounded-xl py-2 px-4'
+												>
+													<DropdownMenuItem className='p-0'>
+														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+															<Avatar className='mr-6 w-5'>
+																<AvatarImage src='adjustments-horizontal-icon.svg' />
+																<AvatarFallback>AL</AvatarFallback>
+															</Avatar>
+															Go to Details
+														</div>
+													</DropdownMenuItem>
+													<DropdownMenuItem className='p-0'>
+														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+															<Avatar className='mr-6 w-5'>
+																<AvatarImage src='play-icon.svg' />
+																<AvatarFallback>PY</AvatarFallback>
+															</Avatar>
+															Start Campaign
+														</div>
+													</DropdownMenuItem>
+													<Separator className='w-[120%] ml-[-16px]' />
+													<DropdownMenuItem className='text-red-600 p-0'>
+														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+															<Avatar className='mr-6 w-5'>
+																<AvatarImage src='trash-icon.svg' />
+																<AvatarFallback>TH</AvatarFallback>
+															</Avatar>
+															Delete Campaign
+														</div>
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div>
-							<Badge className='text-sm font-medium bg-gray-100  hover:bg-gray-200 text-gray-900'>
-								{campaign.status}
-							</Badge>
-						</div>
+							<div>
+								<Badge className='text-sm font-medium bg-gray-100  hover:bg-gray-200 text-gray-900'>
+									{capitalizeFirstLetter(campaign.status as unknown as string)}
+								</Badge>
+							</div>
 
-						<div className='flex items-center'>
-							<Avatar className='mr-2 w-4'>
-								<AvatarImage src='user-icon.svg' />
-								<AvatarFallback>UR</AvatarFallback>
-							</Avatar>
-							{campaign.totalLead}
-						</div>
-						<div className='flex items-center'>
-							<Avatar className='mr-2 w-4'>
-								<AvatarImage src='mail-icon.svg' />
-								<AvatarFallback>IT</AvatarFallback>
-							</Avatar>
-							{campaign.inviteSent}
-						</div>
-						<div className='flex items-center'>
-							<Avatar className='mr-2 w-4'>
-								<AvatarImage src='check-icon.svg' />
-								<AvatarFallback>CN</AvatarFallback>
-							</Avatar>
-							{campaign.connection}
-						</div>
+							<div className='flex items-center'>
+								<Avatar className='mr-2 w-4'>
+									<AvatarImage src='user-icon.svg' />
+									<AvatarFallback>UR</AvatarFallback>
+								</Avatar>
+								{campaign.totalLeads}
+							</div>
+							<div className='flex items-center'>
+								<Avatar className='mr-2 w-4'>
+									<AvatarImage src='mail-icon.svg' />
+									<AvatarFallback>IT</AvatarFallback>
+								</Avatar>
+								{campaign.invites}
+							</div>
+							<div className='flex items-center'>
+								<Avatar className='mr-2 w-4'>
+									<AvatarImage src='check-icon.svg' />
+									<AvatarFallback>CN</AvatarFallback>
+								</Avatar>
+								{campaign.connections}
+							</div>
 
-						<div>
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild className='hover:cursor-pointer'>
-									<Avatar className='mr-2 w-10'>
-										<AvatarImage src='vertical-dots-icon.svg' />
-										<AvatarFallback>VS</AvatarFallback>
-									</Avatar>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent
-									align='end'
-									className='w-[224px] border-none rounded-xl py-2 px-4'
-								>
-									<DropdownMenuItem className='p-0'>
-										<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
-											<Avatar className='mr-6 w-5'>
-												<AvatarImage src='adjustments-horizontal-icon.svg' />
-												<AvatarFallback>AL</AvatarFallback>
-											</Avatar>
-											Go to Details
-										</div>
-									</DropdownMenuItem>
-									<DropdownMenuItem className='p-0'>
-										<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
-											<Avatar className='mr-6 w-5'>
-												<AvatarImage src='play-icon.svg' />
-												<AvatarFallback>PY</AvatarFallback>
-											</Avatar>
-											Start Campaign
-										</div>
-									</DropdownMenuItem>
-									<Separator className='w-[120%] ml-[-16px]' />
-									<DropdownMenuItem className='text-red-600 p-0'>
-										<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
-											<Avatar className='mr-6 w-5'>
-												<AvatarImage src='trash-icon.svg' />
-												<AvatarFallback>TH</AvatarFallback>
-											</Avatar>
-											Delete Campaign
-										</div>
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
+							<div className='lg:flex hidden'>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild className='hover:cursor-pointer'>
+										<Avatar className='mr-2 w-10'>
+											<AvatarImage src='vertical-dots-icon.svg' />
+											<AvatarFallback>VS</AvatarFallback>
+										</Avatar>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent
+										align='end'
+										className='w-[224px] border-none rounded-xl py-2 px-4'
+									>
+										<DropdownMenuItem className='p-0'>
+											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+												<Avatar className='mr-6 w-5'>
+													<AvatarImage src='adjustments-horizontal-icon.svg' />
+													<AvatarFallback>AL</AvatarFallback>
+												</Avatar>
+												Go to Details
+											</div>
+										</DropdownMenuItem>
+										<DropdownMenuItem className='p-0'>
+											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+												<Avatar className='mr-6 w-5'>
+													<AvatarImage src='play-icon.svg' />
+													<AvatarFallback>PY</AvatarFallback>
+												</Avatar>
+												Start Campaign
+											</div>
+										</DropdownMenuItem>
+										<Separator className='w-[120%] ml-[-16px]' />
+										<DropdownMenuItem className='text-red-600 p-0'>
+											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+												<Avatar className='mr-6 w-5'>
+													<AvatarImage src='trash-icon.svg' />
+													<AvatarFallback>TH</AvatarFallback>
+												</Avatar>
+												Delete Campaign
+											</div>
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</div>
 						</div>
-					</div>
-				))}
+					))}
 			</div>
 
 			{/* Pagination */}
