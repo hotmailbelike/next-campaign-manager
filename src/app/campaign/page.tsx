@@ -37,7 +37,7 @@ export default function CampaignPage() {
 	const [campaignOptions, setCampaignOptions] = useState<string[]>([]);
 	const [searchedCampaignOptions, setSearchedCampaignOptions] = useState<string[]>([]);
 	const [searchCampaignOptions, setSearchCampaignOptions] = useState<string>('');
-	const [selectedCampaigns, setSelectedCampaigns] = useState([]);
+	const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
 
 	useEffect(() => {
 		listCampaigns().then((paginatedCampaigns) => {
@@ -130,9 +130,21 @@ export default function CampaignPage() {
 														(campaignOptions.length - 1 == idx ? 'mb-0' : 'mb-5')
 													}
 												>
-													<Checkbox id='terms' className='bg-gray-50 shadow-none' />
+													<Checkbox
+														checked={!!selectedCampaigns.includes(campaignOption)}
+														id={campaignOption}
+														className='bg-gray-50 shadow-none'
+														onCheckedChange={(checked) => {
+															if (checked)
+																setSelectedCampaigns((prev) => [...prev, campaignOption]);
+															else
+																setSelectedCampaigns((prev) =>
+																	prev.filter((opt) => opt !== campaignOption)
+																);
+														}}
+													/>
 													<Label
-														htmlFor='terms'
+														htmlFor={campaignOption}
 														className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
 													>
 														{campaignOption}
@@ -147,9 +159,21 @@ export default function CampaignPage() {
 														(campaignOptions.length - 1 == idx ? 'mb-0' : 'mb-5')
 													}
 												>
-													<Checkbox id='terms' className='bg-gray-50 shadow-none' />
+													<Checkbox
+														checked={!!selectedCampaigns.includes(campaignOption)}
+														id={campaignOption}
+														className='bg-gray-50 shadow-none'
+														onCheckedChange={(checked) => {
+															if (checked)
+																setSelectedCampaigns((prev) => [...prev, campaignOption]);
+															else
+																setSelectedCampaigns((prev) =>
+																	prev.filter((opt) => opt !== campaignOption)
+																);
+														}}
+													/>
 													<Label
-														htmlFor='terms'
+														htmlFor={campaignOption}
 														className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
 													>
 														{campaignOption}
