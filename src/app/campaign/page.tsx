@@ -30,6 +30,7 @@ import {
 	createCampaign,
 	getCampaignById,
 	startCampaign,
+	deleteCampaignById,
 } from '@/actions';
 import { useState, useEffect } from 'react';
 import {
@@ -50,6 +51,16 @@ import {
 	DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
@@ -66,9 +77,18 @@ export default function CampaignPage() {
 		connections: 0,
 	});
 	const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+	const [selectedCampaignIDForDelete, setSelectedCampaignIDForDelete] = useState<
+		string | null
+	>(null);
 
 	const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
 	const [showCampaignDetailsModal, setShowCampaignDetailsModal] = useState(false);
+	const [showCampaignDeleteModal, setShowCampaignDeleteModal] = useState(false);
+
+	const handlePromptDelete = (campaignId: string) => {
+		setSelectedCampaignIDForDelete(campaignId);
+		setShowCampaignDeleteModal(true);
+	};
 
 	const handleCreateCampaignObj = (key: string, value: string | number) =>
 		setCreateCampaignObj((prev) => ({ ...prev, [key]: value }));
@@ -86,6 +106,24 @@ export default function CampaignPage() {
 				setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
 			})
 		);
+	};
+
+	const handleDeleteCampaign = () => {
+		if (selectedCampaignIDForDelete) {
+			deleteCampaignById(selectedCampaignIDForDelete).then(() => {
+				listCampaigns()
+					.then((paginatedCampaigns) => {
+						setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+						setShowCampaignDeleteModal(false);
+						setSelectedCampaignIDForDelete(null);
+					})
+					.then(() => {
+						distinctCampaignNames().then((campaignNames) => {
+							setCampaignOptions(campaignNames as string[]);
+						});
+					});
+			});
+		}
 	};
 
 	useEffect(() => {
@@ -319,7 +357,10 @@ export default function CampaignPage() {
 													)}
 													<Separator className='w-[120%] ml-[-16px]' />
 													<DropdownMenuItem className='text-red-600 p-0'>
-														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+														<div
+															className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'
+															onClick={() => handlePromptDelete(campaign.id)}
+														>
 															<Avatar className='mr-6 w-5'>
 																<AvatarImage src='trash-icon.svg' />
 																<AvatarFallback>TH</AvatarFallback>
@@ -401,7 +442,10 @@ export default function CampaignPage() {
 										)}
 										<Separator className='w-[120%] ml-[-16px]' />
 										<DropdownMenuItem className='text-red-600 p-0'>
-											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+											<div
+												className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'
+												onClick={() => handlePromptDelete(campaign.id)}
+											>
 												<Avatar className='mr-6 w-5'>
 													<AvatarImage src='trash-icon.svg' />
 													<AvatarFallback>TH</AvatarFallback>
@@ -420,7 +464,7 @@ export default function CampaignPage() {
 			<div className='flex items-center justify-between px-4 py-2'>
 				<div className='text-sm font-medium text-gray-500'>
 					Showing <span className='text-black'>1-10</span> of{' '}
-					<span className='text-black'>1000</span>
+					<span className='text-black'>{campaign?.totalCount}</span>
 				</div>
 				<div className='flex '>
 					<Button
@@ -440,6 +484,7 @@ export default function CampaignPage() {
 				</div>
 			</div>
 
+			{/* Create campaign modal */}
 			<Dialog
 				open={showCreateCampaignModal}
 				onOpenChange={(isOpen) => setShowCreateCampaignModal(isOpen)}
@@ -551,6 +596,7 @@ export default function CampaignPage() {
 				</DialogContent>
 			</Dialog>
 
+			{/* Campaign details modal */}
 			<Dialog
 				open={showCampaignDetailsModal}
 				onOpenChange={(isOpen) => setShowCampaignDetailsModal(isOpen)}
@@ -603,6 +649,28 @@ export default function CampaignPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Delete confirmation modal */}
+			<AlertDialog
+				open={showCampaignDeleteModal}
+				onOpenChange={(isOpen) => setShowCampaignDeleteModal(isOpen)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete this campaign?</AlertDialogTitle>
+						<AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							className='bg-red-500 hover:bg-red-600'
+							onClick={() => handleDeleteCampaign()}
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }
