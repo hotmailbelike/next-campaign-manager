@@ -35,6 +35,8 @@ export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
 	const [selectedFilter, setSelectedFilter] = useState('Filter by');
 	const [campaignOptions, setCampaignOptions] = useState<string[]>([]);
+	const [searchedCampaignOptions, setSearchedCampaignOptions] = useState<string[]>([]);
+	const [searchCampaignOptions, setSearchCampaignOptions] = useState<string>('');
 	const [selectedCampaigns, setSelectedCampaigns] = useState([]);
 
 	useEffect(() => {
@@ -47,11 +49,23 @@ export default function CampaignPage() {
 		});
 	}, []);
 
+	useEffect(() => {
+		if (searchCampaignOptions?.trim()) {
+			const matches = campaignOptions.filter((opt) =>
+				opt.toLowerCase().includes(searchCampaignOptions.toLowerCase())
+			);
+			setSearchedCampaignOptions(matches);
+		} else {
+			setSearchedCampaignOptions([]);
+		}
+	}, [searchCampaignOptions]);
+
 	return (
 		<div className='flex flex-col gap-4'>
 			<div className='flex lg:flex-row flex-col  justify-between'>
 				{/* <div className='grid lg:grid-cols-3 grid-cols-1 gap-2 items-center '> */}
 				<div className='lg:flex items-center '>
+					{/* Campaign Search */}
 					<div className='relative rounded-full mr-4 w-[350px] bg-gray-50'>
 						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
 						<Input placeholder='Search Campaign' className='pl-8 rounded-full' />
@@ -90,10 +104,13 @@ export default function CampaignPage() {
 								<Input
 									placeholder='Search Campaign'
 									className='pl-8 rounded-md focus-visible:outline-0 focus-visible:ring-[1px] focus-visible:ring-blue-600'
+									onChange={({ target: { value } }) => setSearchCampaignOptions(value)}
+									value={searchCampaignOptions || ''}
 								/>
 								<XCircle
 									className='absolute right-2.5 top-2.5 h-4 w-4 text-white z-10 hover:cursor-pointer'
 									fill='#9ca3af'
+									onClick={() => setSearchCampaignOptions('')}
 								/>
 							</div>
 							<div className='p-4  text-gray-900 border-gray-200 border-[1px] rounded-md'>
@@ -104,22 +121,41 @@ export default function CampaignPage() {
 								</div>
 
 								{campaignOptions?.length &&
-									campaignOptions.map((campaignOption, idx) => (
-										<div
-											className={
-												'flex items-center space-x-2 ' +
-												(campaignOptions.length - 1 == idx ? 'mb-0' : 'mb-5')
-											}
-										>
-											<Checkbox id='terms' className='bg-gray-50 shadow-none' />
-											<Label
-												htmlFor='terms'
-												className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-											>
-												{campaignOption}
-											</Label>
-										</div>
-									))}
+									(searchedCampaignOptions?.length
+										? searchedCampaignOptions.map((campaignOption, idx) => (
+												<div
+													key={`searchedCampaignOption-${idx}`}
+													className={
+														'flex items-center space-x-2 ' +
+														(campaignOptions.length - 1 == idx ? 'mb-0' : 'mb-5')
+													}
+												>
+													<Checkbox id='terms' className='bg-gray-50 shadow-none' />
+													<Label
+														htmlFor='terms'
+														className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+													>
+														{campaignOption}
+													</Label>
+												</div>
+										  ))
+										: campaignOptions.map((campaignOption, idx) => (
+												<div
+													key={`campaignOption-${idx}`}
+													className={
+														'flex items-center space-x-2 ' +
+														(campaignOptions.length - 1 == idx ? 'mb-0' : 'mb-5')
+													}
+												>
+													<Checkbox id='terms' className='bg-gray-50 shadow-none' />
+													<Label
+														htmlFor='terms'
+														className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+													>
+														{campaignOption}
+													</Label>
+												</div>
+										  )))}
 							</div>
 						</PopoverContent>
 					</Popover>
