@@ -449,13 +449,13 @@ export default function CampaignPage() {
 							key={campaign.id}
 							className='grid lg:grid-cols-7 grid-cols-1 gap-4 py-6 px-4 my-4 rounded-xl bg-white border border-gray-100 items-center'
 						>
-							<div className='col-span-2 '>
+							<div className='col-span-1'>
 								<div className='flex items-center'>
 									<Avatar className='mr-3'>
 										<AvatarImage src='campaign-icon.svg' />
 										<AvatarFallback>CN</AvatarFallback>
 									</Avatar>
-									<div className='flex flex-row justify-between'>
+									<div className='flex flex-row justify-between lg:gap-x-0 gap-x-20'>
 										<div className='flex flex-col'>
 											<span className='leading-none text-sm font-semibold'>
 												{campaign.name}
