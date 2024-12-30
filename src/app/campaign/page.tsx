@@ -97,7 +97,7 @@ export default function CampaignPage() {
 	const [showCampaignDeleteModal, setShowCampaignDeleteModal] = useState(false);
 
 	const [campaignFilter, setCampaignFilter] = useState({
-		exactName: '',
+		exactNames: '', // comma-separated (without whitespace)
 		partialName: '',
 		status: '',
 	});
@@ -165,6 +165,11 @@ export default function CampaignPage() {
 	}, [searchCampaignOptions]);
 
 	useEffect(() => {
+		console.log(
+			'📣 -> file: page.tsx:176 -> CampaignPage -> campaignFilter:',
+			campaignFilter
+		);
+
 		if (!hasTruthyValue(campaignFilter)) {
 			setFilteredCampaigns([]);
 		} else {
@@ -270,12 +275,26 @@ export default function CampaignPage() {
 														id={campaignOption}
 														className='bg-gray-50 shadow-none'
 														onCheckedChange={(checked) => {
-															if (checked)
+															if (checked) {
 																setSelectedCampaigns((prev) => [...prev, campaignOption]);
-															else
+																setCampaignFilter((prev) => ({
+																	...prev,
+																	exactNames: prev.exactNames
+																		? `${prev.exactNames},${campaignOption}`
+																		: campaignOption,
+																}));
+															} else {
 																setSelectedCampaigns((prev) =>
 																	prev.filter((opt) => opt !== campaignOption)
 																);
+																setCampaignFilter((prev) => ({
+																	...prev,
+																	exactNames: prev.exactNames
+																		.split(',')
+																		.filter((name) => name !== campaignOption)
+																		.join(','),
+																}));
+															}
 														}}
 													/>
 													<Label
@@ -299,12 +318,26 @@ export default function CampaignPage() {
 														id={campaignOption}
 														className='bg-gray-50 shadow-none'
 														onCheckedChange={(checked) => {
-															if (checked)
+															if (checked) {
 																setSelectedCampaigns((prev) => [...prev, campaignOption]);
-															else
+																setCampaignFilter((prev) => ({
+																	...prev,
+																	exactNames: prev.exactNames
+																		? `${prev.exactNames},${campaignOption}`
+																		: campaignOption,
+																}));
+															} else {
 																setSelectedCampaigns((prev) =>
 																	prev.filter((opt) => opt !== campaignOption)
 																);
+																setCampaignFilter((prev) => ({
+																	...prev,
+																	exactNames: prev.exactNames
+																		.split(',')
+																		.filter((name) => name !== campaignOption)
+																		.join(','),
+																}));
+															}
 														}}
 													/>
 													<Label

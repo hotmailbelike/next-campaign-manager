@@ -112,15 +112,15 @@ export const deleteCampaignById = async (
 };
 
 export const filterCampaigns = async (filterQueryObject: {
-	exactName?: string;
+	exactNames?: string;
 	partialName?: string;
 	status?: string;
 }): Promise<Campaign[] | ErrorResponse> => {
 	try {
 		const queryParams = new URLSearchParams();
 
-		if (filterQueryObject.exactName) {
-			queryParams.append('exactName', filterQueryObject.exactName);
+		if (filterQueryObject.exactNames) {
+			queryParams.append('exactNames', filterQueryObject.exactNames);
 		}
 		if (filterQueryObject.partialName) {
 			queryParams.append('partialName', filterQueryObject.partialName);
