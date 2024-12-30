@@ -63,6 +63,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { twMerge } from 'tailwind-merge';
 
 export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
@@ -95,6 +96,50 @@ export default function CampaignPage() {
 	const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
 	const [showCampaignDetailsModal, setShowCampaignDetailsModal] = useState(false);
 	const [showCampaignDeleteModal, setShowCampaignDeleteModal] = useState(false);
+
+	const [paginationDetails, setPaginationDetails] = useState({
+		totalPages: 1,
+		currentPageNumber: 1,
+	});
+
+	const canGoToPrevPage = () => {
+		return paginationDetails.currentPageNumber !== 1;
+	};
+
+	const canGoToNextPage = () => {
+		return paginationDetails.currentPageNumber !== paginationDetails.totalPages;
+	};
+
+	const handlePageChange = (direction: 'next' | 'previous') => {
+		if (direction === 'next' && canGoToNextPage()) {
+			setPaginationDetails((prev) => ({
+				...prev,
+				currentPageNumber: prev.currentPageNumber + 1,
+			}));
+			listCampaigns(campaign?.nextCursor as string, 'next').then((paginatedCampaigns) => {
+				setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+			});
+		} else if (direction === 'previous' && canGoToPrevPage()) {
+			setPaginationDetails((prev) => ({
+				...prev,
+				currentPageNumber: prev.currentPageNumber - 1,
+			}));
+			listCampaigns(campaign?.previousCursor as string, 'previous').then(
+				(paginatedCampaigns) => {
+					setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+				}
+			);
+		}
+	};
+
+	const numberOfRecordsShownIndicator = () => {
+		const startRecord = (paginationDetails.currentPageNumber - 1) * 10 + 1;
+		const endRecord = Math.min(
+			paginationDetails.currentPageNumber * 10,
+			campaign?.totalCount || 0
+		);
+		return `${startRecord}-${endRecord}`;
+	};
 
 	const [campaignFilter, setCampaignFilter] = useState({
 		exactNames: '', // comma-separated (without whitespace)
@@ -165,11 +210,6 @@ export default function CampaignPage() {
 	}, [searchCampaignOptions]);
 
 	useEffect(() => {
-		console.log(
-			'📣 -> file: page.tsx:176 -> CampaignPage -> campaignFilter:',
-			campaignFilter
-		);
-
 		if (!hasTruthyValue(campaignFilter)) {
 			setFilteredCampaigns([]);
 		} else {
@@ -178,6 +218,13 @@ export default function CampaignPage() {
 			});
 		}
 	}, [campaignFilter]);
+
+	useEffect(() => {
+		setPaginationDetails((prev) => ({
+			...prev,
+			totalPages: campaign?.totalCount ? Math.ceil(campaign.totalCount / 10) : 1,
+		}));
+	}, [campaign]);
 
 	const campaignsToRender = filteredCampaigns?.length
 		? filteredCampaigns
@@ -475,7 +522,13 @@ export default function CampaignPage() {
 								</div>
 							</div>
 							<div>
-								<Badge className='text-sm font-medium bg-gray-100  hover:bg-gray-200 text-gray-900'>
+								<Badge
+									className={`text-sm font-medium ${
+										campaign.status === 'ACTIVE'
+											? 'bg-green-500 hover:bg-green-600'
+											: 'text-gray-900 bg-gray-100 hover:bg-gray-200'
+									}`}
+								>
 									{capitalizeFirstLetter(campaign.status as unknown as string)}
 								</Badge>
 							</div>
@@ -565,21 +618,33 @@ export default function CampaignPage() {
 			{!hasTruthyValue(campaignFilter) && (
 				<div className='flex items-center justify-between px-4 py-2'>
 					<div className='text-sm font-medium text-gray-500'>
-						Showing <span className='text-black'>1-10</span> of{' '}
-						<span className='text-black'>{campaign?.totalCount}</span>
+						Showing <span className='text-black'>{numberOfRecordsShownIndicator()}</span>{' '}
+						of <span className='text-black'>{campaign?.totalCount}</span>
 					</div>
 					<div className='flex '>
 						<Button
 							variant='outline'
-							className='rounded-tr-none rounded-br-none border-r-0 text-sm font-medium px-3 py-2 text-gray-500  hover:text-gray-600'
+							className={twMerge(
+								'rounded-tr-none rounded-br-none border-r-0 text-sm font-medium px-3 py-2',
+								canGoToPrevPage()
+									? 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-800'
+									: 'text-gray-500  hover:text-gray-600 hover:cursor-not-allowed'
+							)}
 							size='sm'
+							onClick={() => handlePageChange('previous')}
 						>
 							Previous
 						</Button>
 						<Button
 							variant='outline'
-							className='rounded-tl-none rounded-bl-none text-sm font-medium px-6 py-2 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-800'
+							className={twMerge(
+								'rounded-tl-none rounded-bl-none text-sm font-medium px-6 py-2',
+								canGoToNextPage()
+									? 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-800'
+									: 'text-gray-500  hover:text-gray-600 hover:cursor-not-allowed'
+							)}
 							size='sm'
+							onClick={() => handlePageChange('next')}
 						>
 							Next
 						</Button>

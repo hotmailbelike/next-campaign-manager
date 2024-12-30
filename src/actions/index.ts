@@ -9,11 +9,25 @@ import {
 
 const serverUrl = process.env.SERVER_URL;
 
-export const listCampaigns = async (): Promise<
-	PaginatedCampaignResponse | ErrorResponse
-> => {
+export const listCampaigns = async (
+	cursor?: string,
+	direction: 'next' | 'previous' = 'next',
+	take: string = '10'
+): Promise<PaginatedCampaignResponse | ErrorResponse> => {
 	try {
-		const response = await fetch(`${serverUrl}/campaigns`);
+		const queryParams = new URLSearchParams();
+
+		queryParams.append('take', take);
+		queryParams.append('direction', direction);
+
+		if (cursor) {
+			queryParams.append('cursor', cursor);
+		}
+
+		const queryString = queryParams.toString();
+		const url = `${serverUrl}/campaigns${queryString ? `?${queryString}` : ''}`;
+		const response = await fetch(url);
+
 		return response.json();
 	} catch (error) {
 		console.error('📣 -> file: index.ts:11 -> listCampaigns -> error:', error);

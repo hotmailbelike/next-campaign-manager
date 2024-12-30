@@ -19,9 +19,11 @@ export type Campaign = {
 
 export type PaginatedCampaignResponse = {
 	data: Campaign[];
-	cursor: string | null;
-	hasMore: boolean;
 	totalCount: number;
+	nextCursor: string | null;
+	previousCursor: string | null;
+	hasNextPage: boolean;
+	hasPreviousPage: boolean;
 };
 
 export type CreateCampaign = {
