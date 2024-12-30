@@ -68,7 +68,8 @@ export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
 	const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
 
-	const [selectedFilter, setSelectedFilter] = useState('Filter by');
+	const [selectedCampaignStatusFilter, setSelectedCampaignStatusFilter] =
+		useState('Filter by');
 	const [campaignOptions, setCampaignOptions] = useState<string[]>([]);
 	const [searchedCampaignOptions, setSearchedCampaignOptions] = useState<string[]>([]);
 
@@ -201,8 +202,14 @@ export default function CampaignPage() {
 
 					{/* Campaign Status Filter */}
 					<Select
-						value={selectedFilter}
-						onValueChange={setSelectedFilter}
+						value={selectedCampaignStatusFilter}
+						onValueChange={(value) => {
+							setSelectedCampaignStatusFilter(value);
+							setCampaignFilter((prev) => ({
+								...prev,
+								status: value !== 'Filter by' ? value : '',
+							}));
+						}}
 						defaultValue='Filter by'
 					>
 						<SelectTrigger className='w-[124px] mr-2 rounded-full text-gray-800'>
@@ -211,7 +218,7 @@ export default function CampaignPage() {
 						<SelectContent>
 							<SelectGroup>
 								<SelectItem value='Filter by'>
-									{selectedFilter === 'Filter by' ? 'Filter by' : 'None'}
+									{selectedCampaignStatusFilter === 'Filter by' ? 'Filter by' : 'None'}
 								</SelectItem>
 								<SelectItem value='DRAFT'>Draft</SelectItem>
 								<SelectItem value='ACTIVE'>Active</SelectItem>
