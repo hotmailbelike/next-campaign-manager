@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Dispatch, SetStateAction } from 'react';
+import debounce from 'lodash.debounce';
 
 interface CampaignFiltersProps {
 	searchCampaignByPartialName: string;
@@ -51,7 +52,11 @@ export default function CampaignFilters({
 					value={searchCampaignByPartialName}
 					onChange={({ target: { value } }) => {
 						setSearchCampaignByPartialName(value);
-						setCampaignFilter((prev: any) => ({ ...prev, partialName: value }));
+						// setCampaignFilter((prev: any) => ({ ...prev, partialName: value }));
+						debounce(
+							() => setCampaignFilter((prev: any) => ({ ...prev, partialName: value })),
+							1000
+						)();
 					}}
 				/>
 			</div>

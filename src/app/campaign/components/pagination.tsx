@@ -8,7 +8,7 @@ interface PaginationProps {
 	handlePageChange: (direction: 'next' | 'previous') => void;
 }
 
-export function Pagination({
+export default function Pagination({
 	totalCount,
 	currentPageNumber,
 	totalPages,

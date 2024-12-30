@@ -1,6 +1,17 @@
 'use client';
 
+import { useState, useEffect, FormEvent } from 'react';
+
 import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+
+import CampaignFilters from './components/campaign-filters';
+import CampaignList from './components/campaign-list';
+import CampaignDetailsModal from './components/campaign-details-modal';
+import CampaignCreateModal from './components/campaign-create-modal';
+import CampaignDeleteModal from './components/campaign-delete-modal';
+import Pagination from './components/pagination';
+import Loader from './components/loader';
 
 import {
 	listCampaigns,
@@ -11,19 +22,11 @@ import {
 	deleteCampaignById,
 	filterCampaigns,
 } from '@/actions';
-import { useState, useEffect, FormEvent } from 'react';
-import { CreateCampaign, PaginatedCampaignResponse, Campaign } from '@/lib/types';
 import { hasTruthyValue } from '@/lib/utils';
-
-import CampaignFilters from './components/campaign-filters';
-import CampaignList from './components/campaign-list';
-import { CampaignDetailsModal } from './components/campaign-details-modal';
-import CampaignCreateModal from './components/campaign-create-modal';
-import { Plus } from 'lucide-react';
-import CampaignDeleteModal from './components/campaign-delete-modal';
-import { Pagination } from './components/pagination';
+import { CreateCampaign, PaginatedCampaignResponse, Campaign } from '@/lib/types';
 
 export default function CampaignPage() {
+	const [isLoading, setIsLoading] = useState(false);
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
 	const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
 
@@ -69,6 +72,7 @@ export default function CampaignPage() {
 	};
 
 	const handlePageChange = (direction: 'next' | 'previous') => {
+		setIsLoading(true);
 		if (direction === 'next' && canGoToNextPage()) {
 			setPaginationDetails((prev) => ({
 				...prev,
@@ -76,6 +80,7 @@ export default function CampaignPage() {
 			}));
 			listCampaigns(campaign?.nextCursor as string, 'next').then((paginatedCampaigns) => {
 				setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+				setIsLoading(false);
 			});
 		} else if (direction === 'previous' && canGoToPrevPage()) {
 			setPaginationDetails((prev) => ({
@@ -85,18 +90,10 @@ export default function CampaignPage() {
 			listCampaigns(campaign?.previousCursor as string, 'previous').then(
 				(paginatedCampaigns) => {
 					setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+					setIsLoading(false);
 				}
 			);
 		}
-	};
-
-	const numberOfRecordsShownIndicator = () => {
-		const startRecord = (paginationDetails.currentPageNumber - 1) * 10 + 1;
-		const endRecord = Math.min(
-			paginationDetails.currentPageNumber * 10,
-			campaign?.totalCount || 0
-		);
-		return `${startRecord}-${endRecord}`;
 	};
 
 	const [campaignFilter, setCampaignFilter] = useState({
@@ -115,6 +112,7 @@ export default function CampaignPage() {
 
 	const handleCreateCampaign = (e: FormEvent) => {
 		e.preventDefault();
+		setIsLoading(true);
 		createCampaign({
 			...createCampaignObj,
 			// not sure why have to do this, but without this parsing the server throws error
@@ -137,6 +135,7 @@ export default function CampaignPage() {
 							invites: 0,
 							connections: 0,
 						});
+						setIsLoading(false);
 					});
 				});
 		});
@@ -150,15 +149,18 @@ export default function CampaignPage() {
 	};
 
 	const handleStartCampaign = (campaignId: string) => {
+		setIsLoading(true);
 		startCampaign(campaignId).then(() =>
 			listCampaigns().then((paginatedCampaigns) => {
 				setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+				setIsLoading(false);
 			})
 		);
 	};
 
 	const handleDeleteCampaign = () => {
 		if (selectedCampaignIDForDelete) {
+			setIsLoading(true);
 			deleteCampaignById(selectedCampaignIDForDelete).then(() => {
 				listCampaigns()
 					.then((paginatedCampaigns) => {
@@ -169,6 +171,7 @@ export default function CampaignPage() {
 					.then(() => {
 						distinctCampaignNames().then((campaignNames) => {
 							setCampaignOptions(campaignNames as string[]);
+							setIsLoading(false);
 						});
 					});
 			});
@@ -176,8 +179,10 @@ export default function CampaignPage() {
 	};
 
 	useEffect(() => {
+		setIsLoading(true);
 		listCampaigns().then((paginatedCampaigns) => {
 			setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+			setIsLoading(false);
 		});
 
 		distinctCampaignNames().then((campaignNames) => {
@@ -200,8 +205,10 @@ export default function CampaignPage() {
 		if (!hasTruthyValue(campaignFilter)) {
 			setFilteredCampaigns([]);
 		} else {
+			setIsLoading(true);
 			filterCampaigns(campaignFilter).then((filteredCampaigns) => {
 				setFilteredCampaigns(filteredCampaigns as Campaign[]);
+				setIsLoading(false);
 			});
 		}
 	}, [campaignFilter]);
@@ -212,10 +219,6 @@ export default function CampaignPage() {
 			totalPages: campaign?.totalCount ? Math.ceil(campaign.totalCount / 10) : 1,
 		}));
 	}, [campaign]);
-
-	const campaignsToRender = filteredCampaigns?.length
-		? filteredCampaigns
-		: campaign?.data;
 
 	return (
 		<div className='flex flex-col gap-4'>
@@ -243,45 +246,55 @@ export default function CampaignPage() {
 					</Button>
 				</div>
 			</div>
-			{/* Campaigns */}
-			<CampaignList
-				campaigns={campaignsToRender as Campaign[]}
-				hasFilteredResults={
-					!(hasTruthyValue(campaignFilter) && !filteredCampaigns.length)
-				}
-				handleSelectCampaign={handleSelectCampaign}
-				handleStartCampaign={handleStartCampaign}
-				handlePromptDelete={handlePromptDelete}
-			/>
-			{/* Pagination */}
-			{!hasTruthyValue(campaignFilter) && (
-				<Pagination
-					totalCount={campaign?.totalCount || 0}
-					currentPageNumber={paginationDetails.currentPageNumber}
-					totalPages={paginationDetails.totalPages}
-					handlePageChange={handlePageChange}
-				/>
+			{isLoading ? (
+				<Loader />
+			) : (
+				<>
+					{/* Campaigns */}
+					<CampaignList
+						campaigns={
+							filteredCampaigns?.length
+								? filteredCampaigns
+								: (campaign?.data as Campaign[])
+						}
+						hasFilteredResults={
+							!(hasTruthyValue(campaignFilter) && !filteredCampaigns.length)
+						}
+						handleSelectCampaign={handleSelectCampaign}
+						handleStartCampaign={handleStartCampaign}
+						handlePromptDelete={handlePromptDelete}
+					/>
+					{/* Pagination */}
+					{!hasTruthyValue(campaignFilter) && (
+						<Pagination
+							totalCount={campaign?.totalCount || 0}
+							currentPageNumber={paginationDetails.currentPageNumber}
+							totalPages={paginationDetails.totalPages}
+							handlePageChange={handlePageChange}
+						/>
+					)}
+					{/* Create campaign modal */}
+					<CampaignCreateModal
+						showCreateCampaignModal={showCreateCampaignModal}
+						setShowCreateCampaignModal={setShowCreateCampaignModal}
+						createCampaignObj={createCampaignObj}
+						handleCreateCampaignObj={handleCreateCampaignObj}
+						handleCreateCampaign={handleCreateCampaign}
+					/>
+					{/* Campaign details modal */}
+					<CampaignDetailsModal
+						showCampaignDetailsModal={showCampaignDetailsModal}
+						setShowCampaignDetailsModal={setShowCampaignDetailsModal}
+						selectedCampaign={selectedCampaign}
+					/>
+					{/* Delete confirmation modal */}
+					<CampaignDeleteModal
+						showCampaignDeleteModal={showCampaignDeleteModal}
+						setShowCampaignDeleteModal={setShowCampaignDeleteModal}
+						handleDeleteCampaign={handleDeleteCampaign}
+					/>
+				</>
 			)}
-			{/* Create campaign modal */}
-			<CampaignCreateModal
-				showCreateCampaignModal={showCreateCampaignModal}
-				setShowCreateCampaignModal={setShowCreateCampaignModal}
-				createCampaignObj={createCampaignObj}
-				handleCreateCampaignObj={handleCreateCampaignObj}
-				handleCreateCampaign={handleCreateCampaign}
-			/>
-			{/* Campaign details modal */}
-			<CampaignDetailsModal
-				showCampaignDetailsModal={showCampaignDetailsModal}
-				setShowCampaignDetailsModal={setShowCampaignDetailsModal}
-				selectedCampaign={selectedCampaign}
-			/>
-			{/* Delete confirmation modal */}
-			<CampaignDeleteModal
-				showCampaignDeleteModal={showCampaignDeleteModal}
-				setShowCampaignDeleteModal={setShowCampaignDeleteModal}
-				handleDeleteCampaign={handleDeleteCampaign}
-			/>
 		</div>
 	);
 }
