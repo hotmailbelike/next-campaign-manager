@@ -93,3 +93,20 @@ export const startCampaign = async (
 		return { message: 'Unknown error occurred', code: 500 };
 	}
 };
+
+export const deleteCampaignById = async (
+	campaignId: string
+): Promise<Campaign | ErrorResponse> => {
+	try {
+		const response = await fetch(`${serverUrl}/campaigns/${campaignId}`, {
+			method: 'DELETE',
+		});
+		return response.json();
+	} catch (error) {
+		console.error('📣 -> file: index.ts:104 -> error:', error);
+		if (error instanceof Error) {
+			return { message: error.message, code: 500 };
+		}
+		return { message: 'Unknown error occurred', code: 500 };
+	}
+};
