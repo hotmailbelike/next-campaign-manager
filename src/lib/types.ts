@@ -23,3 +23,16 @@ export type PaginatedCampaignResponse = {
 	hasMore: boolean;
 	totalCount: number;
 };
+
+export type CreateCampaign = {
+	name: string;
+	description: string;
+	totalLeads: number;
+	invites: number;
+	connections: number;
+};
+
+export type ErrorResponse = {
+	message: string;
+	code: number;
+};
