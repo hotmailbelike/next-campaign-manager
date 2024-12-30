@@ -24,12 +24,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-import { listCampaigns, distinctCampaignNames } from '@/actions';
+import { listCampaigns, distinctCampaignNames, createCampaign } from '@/actions';
 import { useState, useEffect } from 'react';
-import { PaginatedCampaignResponse } from '@/lib/types';
+import { CreateCampaign, PaginatedCampaignResponse } from '@/lib/types';
 import { capitalizeFirstLetter, getMonthYear } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
@@ -38,14 +47,27 @@ export default function CampaignPage() {
 	const [searchedCampaignOptions, setSearchedCampaignOptions] = useState<string[]>([]);
 	const [searchCampaignOptions, setSearchCampaignOptions] = useState<string>('');
 	const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
+	const [createCampaignObj, setCreateCampaignObj] = useState<CreateCampaign>({
+		name: '',
+		description: '',
+		totalLeads: 0,
+		invites: 0,
+		connections: 0,
+	});
+
+	const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
+	const [showCampaignDetailsModal, setShowCampaignDetailsModal] = useState(false);
+
+	const handleCreateCampaignObj = (key: string, value: string | number) =>
+		setCreateCampaignObj((prev) => ({ ...prev, [key]: value }));
 
 	useEffect(() => {
 		listCampaigns().then((paginatedCampaigns) => {
-			setCampaign(paginatedCampaigns);
+			setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
 		});
 
 		distinctCampaignNames().then((campaignNames) => {
-			setCampaignOptions(campaignNames);
+			setCampaignOptions(campaignNames as string[]);
 		});
 	}, []);
 
@@ -185,7 +207,11 @@ export default function CampaignPage() {
 					</Popover>
 				</div>
 				<div>
-					<Button className='gap-2 bg-indigo-700 rounded-full lg:mt-0 mt-2'>
+					<Button
+						className='gap-2 bg-indigo-700 rounded-full lg:mt-0 mt-2 hover:bg-indigo-800'
+						type='button'
+						onClick={() => setShowCreateCampaignModal(true)}
+					>
 						<Plus className='h-4 w-4' /> Create Campaign
 					</Button>
 				</div>
@@ -223,7 +249,7 @@ export default function CampaignPage() {
 												{campaign.name}
 											</span>
 											<span className='text-gray-500 leading-none text-xs font-normal mt-1'>
-												{getMonthYear(new Date(campaign.createdAt))}
+												Created in {getMonthYear(new Date(campaign.createdAt))}
 											</span>
 										</div>
 										<div className='lg:hidden visible'>
@@ -370,6 +396,111 @@ export default function CampaignPage() {
 					</Button>
 				</div>
 			</div>
+
+			<Dialog
+				open={showCreateCampaignModal}
+				onOpenChange={(isOpen) => setShowCreateCampaignModal(isOpen)}
+			>
+				<DialogContent className='sm:max-w-[425px]'>
+					<DialogHeader>
+						<DialogTitle>Create a new Campaign</DialogTitle>
+						<DialogDescription>
+							New Campaigns will be in draft by default.
+						</DialogDescription>
+					</DialogHeader>
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							createCampaign({
+								...createCampaignObj,
+							}).then(() => {
+								listCampaigns().then((paginatedCampaigns) => {
+									setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+									setShowCreateCampaignModal(false);
+								});
+							});
+						}}
+					>
+						<div className='grid gap-4 py-4'>
+							<div className='grid grid-cols-4 items-center gap-4'>
+								<Label className='text-right'>Name</Label>
+								<Input
+									required
+									value={createCampaignObj['name']}
+									onChange={({ target: { value } }) =>
+										handleCreateCampaignObj('name', value)
+									}
+									className='col-span-3'
+								/>
+							</div>
+							<div className='grid grid-cols-4 items-center gap-4'>
+								<Label className='text-right'>Description</Label>
+								<Textarea
+									required
+									value={createCampaignObj['description']}
+									onChange={({ target: { value } }) =>
+										handleCreateCampaignObj('description', value)
+									}
+									className='col-span-3'
+								/>
+							</div>
+							<div className='grid grid-cols-4 items-center gap-4'>
+								<Label className='text-right'>Leads</Label>
+								<Input
+									required
+									type='number'
+									value={createCampaignObj['totalLeads']}
+									onChange={({ target: { value } }) =>
+										handleCreateCampaignObj('totalLeads', value)
+									}
+									className='col-span-3'
+								/>
+							</div>
+							<div className='grid grid-cols-4 items-center gap-4'>
+								<Label className='text-right'>Invites</Label>
+								<Input
+									required
+									type='number'
+									value={createCampaignObj['invites']}
+									onChange={({ target: { value } }) =>
+										handleCreateCampaignObj('invites', value)
+									}
+									className='col-span-3'
+								/>
+							</div>
+							<div className='grid grid-cols-4 items-center gap-4'>
+								<Label className='text-right'>Connections</Label>
+								<Input
+									required
+									type='number'
+									value={createCampaignObj['connections']}
+									onChange={({ target: { value } }) =>
+										handleCreateCampaignObj('connections', value)
+									}
+									className='col-span-3'
+								/>
+							</div>
+						</div>
+						<DialogFooter>
+							<Button
+								onClick={() => setShowCreateCampaignModal(false)}
+								type='button'
+								size={'sm'}
+								className='bg-indigo-700 hover:bg-indigo-800'
+							>
+								Cancel
+							</Button>
+							<Button
+								type='submit'
+								size={'sm'}
+								className='bg-indigo-700 hover:bg-indigo-800'
+							>
+								Create Campaign
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
