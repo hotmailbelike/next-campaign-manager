@@ -24,9 +24,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-import { listCampaigns, distinctCampaignNames, createCampaign } from '@/actions';
+import {
+	listCampaigns,
+	distinctCampaignNames,
+	createCampaign,
+	getCampaignById,
+} from '@/actions';
 import { useState, useEffect } from 'react';
-import { CreateCampaign, PaginatedCampaignResponse } from '@/lib/types';
+import { CreateCampaign, PaginatedCampaignResponse, Campaign } from '@/lib/types';
 import { capitalizeFirstLetter, getMonthYear } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -54,12 +59,20 @@ export default function CampaignPage() {
 		invites: 0,
 		connections: 0,
 	});
+	const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
 	const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
 	const [showCampaignDetailsModal, setShowCampaignDetailsModal] = useState(false);
 
 	const handleCreateCampaignObj = (key: string, value: string | number) =>
 		setCreateCampaignObj((prev) => ({ ...prev, [key]: value }));
+
+	const handleSelectCampaign = (campaignId: string) => {
+		setShowCampaignDetailsModal(true);
+		getCampaignById(campaignId).then((campaign) =>
+			setSelectedCampaign(campaign as Campaign)
+		);
+	};
 
 	useEffect(() => {
 		listCampaigns().then((paginatedCampaigns) => {
@@ -265,7 +278,10 @@ export default function CampaignPage() {
 													className='w-[224px] border-none rounded-xl py-2 px-4'
 												>
 													<DropdownMenuItem className='p-0'>
-														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+														<div
+															className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'
+															onClick={() => handleSelectCampaign(campaign.id)}
+														>
 															<Avatar className='mr-6 w-5'>
 																<AvatarImage src='adjustments-horizontal-icon.svg' />
 																<AvatarFallback>AL</AvatarFallback>
@@ -339,7 +355,10 @@ export default function CampaignPage() {
 										className='w-[224px] border-none rounded-xl py-2 px-4'
 									>
 										<DropdownMenuItem className='p-0'>
-											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
+											<div
+												className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'
+												onClick={() => handleSelectCampaign(campaign.id)}
+											>
 												<Avatar className='mr-6 w-5'>
 													<AvatarImage src='adjustments-horizontal-icon.svg' />
 													<AvatarFallback>AL</AvatarFallback>
@@ -486,7 +505,7 @@ export default function CampaignPage() {
 								onClick={() => setShowCreateCampaignModal(false)}
 								type='button'
 								size={'sm'}
-								className='bg-indigo-700 hover:bg-indigo-800'
+								className='bg-red-500 hover:bg-red-600'
 							>
 								Cancel
 							</Button>
@@ -499,6 +518,59 @@ export default function CampaignPage() {
 							</Button>
 						</DialogFooter>
 					</form>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog
+				open={showCampaignDetailsModal}
+				onOpenChange={(isOpen) => setShowCampaignDetailsModal(isOpen)}
+			>
+				<DialogContent className='sm:max-w-[425px]'>
+					<DialogHeader>
+						<DialogTitle>Campaign Details</DialogTitle>
+					</DialogHeader>
+
+					<div className='grid gap-2 py-4'>
+						<div className=''>
+							<Label className='text-right mb-2'>Name:</Label>
+							<p className='text-sm font-normal'>{selectedCampaign?.['name']}</p>
+						</div>
+						<Separator></Separator>
+						<div className=''>
+							<Label className='text-right mb-2'>Description:</Label>
+							<p className='text-sm font-normal'>{selectedCampaign?.['description']}</p>
+						</div>
+						<Separator></Separator>
+
+						<div className=''>
+							<Label className='text-right mb-2'>Leads:</Label>
+							<p className='text-sm font-normal'>{selectedCampaign?.['totalLeads']}</p>
+						</div>
+						<Separator></Separator>
+
+						<div className=''>
+							<Label className='text-right mb-2'>Invites:</Label>
+							<p className='text-sm font-normal'>{selectedCampaign?.['invites']}</p>
+						</div>
+						<Separator></Separator>
+
+						<div className=''>
+							<Label className='text-right mb-2'>Connections:</Label>
+							<p className='text-sm font-normal'>{selectedCampaign?.['connections']}</p>
+						</div>
+						<Separator></Separator>
+					</div>
+
+					<DialogFooter>
+						<Button
+							onClick={() => setShowCampaignDetailsModal(false)}
+							type='button'
+							size={'sm'}
+							className='bg-indigo-700 hover:bg-indigo-800'
+						>
+							Close
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>
