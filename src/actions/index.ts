@@ -20,7 +20,21 @@ export const listCampaigns = async (): Promise<
 		if (error instanceof Error) {
 			return { message: error.message, code: 500 };
 		}
+		return { message: 'Unknown error occurred', code: 500 };
+	}
+};
 
+export const getCampaignById = async (
+	campaignId: string
+): Promise<Campaign | ErrorResponse> => {
+	try {
+		const response = await fetch(`${serverUrl}/campaigns/${campaignId}`);
+		return response.json();
+	} catch (error) {
+		console.error('📣 -> file: index.ts:33 -> getCampaignById -> error:', error);
+		if (error instanceof Error) {
+			return { message: error.message, code: 500 };
+		}
 		return { message: 'Unknown error occurred', code: 500 };
 	}
 };
@@ -34,7 +48,6 @@ export const distinctCampaignNames = async (): Promise<string[] | ErrorResponse>
 		if (error instanceof Error) {
 			return { message: error.message, code: 500 };
 		}
-
 		return { message: 'Unknown error occurred', code: 500 };
 	}
 };
@@ -56,7 +69,6 @@ export const createCampaign = async (
 		if (error instanceof Error) {
 			return { message: error.message, code: 500 };
 		}
-
 		return { message: 'Unknown error occurred', code: 500 };
 	}
 };
