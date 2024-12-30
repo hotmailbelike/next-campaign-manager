@@ -72,3 +72,24 @@ export const createCampaign = async (
 		return { message: 'Unknown error occurred', code: 500 };
 	}
 };
+
+export const startCampaign = async (
+	campaignId: string
+): Promise<Campaign | ErrorResponse> => {
+	try {
+		const response = await fetch(`${serverUrl}/campaigns/${campaignId}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ status: 'ACTIVE' }),
+		});
+		return response.json();
+	} catch (error) {
+		console.error('📣 -> file: index.ts:89 -> error:', error);
+		if (error instanceof Error) {
+			return { message: error.message, code: 500 };
+		}
+		return { message: 'Unknown error occurred', code: 500 };
+	}
+};

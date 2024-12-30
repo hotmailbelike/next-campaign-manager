@@ -1,8 +1,8 @@
 export enum CampaignStatus {
-	ACTIVE,
-	INACTIVE,
-	DRAFT,
-	COMPLETED,
+	ACTIVE = 'ACTIVE',
+	INACTIVE = 'INACTIVE',
+	DRAFT = 'DRAFT',
+	COMPLETED = 'COMPLETED',
 }
 
 export type Campaign = {
