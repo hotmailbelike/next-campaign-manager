@@ -234,8 +234,23 @@ export default function CampaignPage() {
 
 					{/* Campaign filter */}
 					<Popover>
-						<PopoverTrigger className='text-left text-gray-800 w-[190px] rounded-full  border-gray-300 border-solid border-[1px] py-2 px-3 text-sm font-medium flex items-center justify-between'>
-							Select Campaign
+						<PopoverTrigger
+							className={`text-left w-[190px] rounded-full border-[1px] py-2 px-3 text-sm font-medium flex items-center justify-between ${
+								selectedCampaigns.length > 0
+									? 'text-indigo-800 bg-indigo-50 border-indigo-400'
+									: 'text-gray-800 bg-white border-gray-300'
+							}`}
+						>
+							<div className='flex items-center space-x-2'>
+								<span>
+									{selectedCampaigns.length > 0 ? 'Select Campaign' : 'Select Campaign'}
+								</span>
+								{selectedCampaigns.length > 0 && (
+									<span className='bg-indigo-600 text-white rounded-full px-2 py-1 text-xs font-medium'>
+										{selectedCampaigns.length}
+									</span>
+								)}
+							</div>
 							<ChevronDown className='h-4 w-4' color='#1f2937' />
 						</PopoverTrigger>
 						<PopoverContent side='bottom' align='end' className='w-[300px] p-1'>
