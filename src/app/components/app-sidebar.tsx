@@ -222,11 +222,12 @@ export function AppSidebar() {
 						</div>
 						<Separator className='my-2' />
 						<div className='flex items-center gap-2 rounded-md p-2'>
-							<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gray-100'>
+							<div className=' relative flex h-10 w-10 items-center justify-center rounded-full bg-gray-100'>
 								<img
-									className='rounded-full flex h-8 w-8 items-center'
+									className='rounded-full flex h-10 w-10 items-center'
 									src='/sidebar-avatar.png'
 								/>
+								<span className='absolute bottom-1 top-7 right-1 left-8 w-3 h-3 bg-green-500 border-2 border-white rounded-full'></span>
 							</div>
 							<div className='flex flex-1 flex-col'>
 								<span className='text-sm font-medium'>Dev</span>
