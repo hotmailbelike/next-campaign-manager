@@ -29,9 +29,15 @@ import {
 	distinctCampaignNames,
 	createCampaign,
 	getCampaignById,
+	startCampaign,
 } from '@/actions';
 import { useState, useEffect } from 'react';
-import { CreateCampaign, PaginatedCampaignResponse, Campaign } from '@/lib/types';
+import {
+	CreateCampaign,
+	PaginatedCampaignResponse,
+	Campaign,
+	CampaignStatus,
+} from '@/lib/types';
 import { capitalizeFirstLetter, getMonthYear } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -71,6 +77,14 @@ export default function CampaignPage() {
 		setShowCampaignDetailsModal(true);
 		getCampaignById(campaignId).then((campaign) =>
 			setSelectedCampaign(campaign as Campaign)
+		);
+	};
+
+	const handleStartCampaign = (campaignId: string) => {
+		startCampaign(campaignId).then(() =>
+			listCampaigns().then((paginatedCampaigns) => {
+				setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+			})
 		);
 	};
 
@@ -289,15 +303,20 @@ export default function CampaignPage() {
 															Go to Details
 														</div>
 													</DropdownMenuItem>
-													<DropdownMenuItem className='p-0'>
-														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
-															<Avatar className='mr-6 w-5'>
-																<AvatarImage src='play-icon.svg' />
-																<AvatarFallback>PY</AvatarFallback>
-															</Avatar>
-															Start Campaign
-														</div>
-													</DropdownMenuItem>
+													{campaign.status === CampaignStatus.DRAFT && (
+														<DropdownMenuItem className='p-0'>
+															<div
+																className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'
+																onClick={() => handleStartCampaign(campaign.id)}
+															>
+																<Avatar className='mr-6 w-5'>
+																	<AvatarImage src='play-icon.svg' />
+																	<AvatarFallback>PY</AvatarFallback>
+																</Avatar>
+																Start Campaign
+															</div>
+														</DropdownMenuItem>
+													)}
 													<Separator className='w-[120%] ml-[-16px]' />
 													<DropdownMenuItem className='text-red-600 p-0'>
 														<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
@@ -366,15 +385,20 @@ export default function CampaignPage() {
 												Go to Details
 											</div>
 										</DropdownMenuItem>
-										<DropdownMenuItem className='p-0'>
-											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
-												<Avatar className='mr-6 w-5'>
-													<AvatarImage src='play-icon.svg' />
-													<AvatarFallback>PY</AvatarFallback>
-												</Avatar>
-												Start Campaign
-											</div>
-										</DropdownMenuItem>
+										{campaign.status == CampaignStatus.DRAFT && (
+											<DropdownMenuItem className='p-0'>
+												<div
+													className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'
+													onClick={() => handleStartCampaign(campaign.id)}
+												>
+													<Avatar className='mr-6 w-5'>
+														<AvatarImage src='play-icon.svg' />
+														<AvatarFallback>PY</AvatarFallback>
+													</Avatar>
+													Start Campaign
+												</div>
+											</DropdownMenuItem>
+										)}
 										<Separator className='w-[120%] ml-[-16px]' />
 										<DropdownMenuItem className='text-red-600 p-0'>
 											<div className='flex items-center hover:cursor-pointer text-sm font-normal text-gray-700'>
@@ -433,10 +457,16 @@ export default function CampaignPage() {
 							createCampaign({
 								...createCampaignObj,
 							}).then(() => {
-								listCampaigns().then((paginatedCampaigns) => {
-									setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
-									setShowCreateCampaignModal(false);
-								});
+								listCampaigns()
+									.then((paginatedCampaigns) => {
+										setCampaign(paginatedCampaigns as PaginatedCampaignResponse);
+										setShowCreateCampaignModal(false);
+									})
+									.then(() => {
+										distinctCampaignNames().then((campaignNames) => {
+											setCampaignOptions(campaignNames as string[]);
+										});
+									});
 							});
 						}}
 					>
