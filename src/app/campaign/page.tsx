@@ -31,15 +31,17 @@ import {
 	getCampaignById,
 	startCampaign,
 	deleteCampaignById,
+	filterCampaigns,
 } from '@/actions';
 import { useState, useEffect } from 'react';
+import debounce from 'lodash.debounce';
 import {
 	CreateCampaign,
 	PaginatedCampaignResponse,
 	Campaign,
 	CampaignStatus,
 } from '@/lib/types';
-import { capitalizeFirstLetter, getMonthYear } from '@/lib/utils';
+import { capitalizeFirstLetter, getMonthYear, hasTruthyValue } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import {
@@ -64,9 +66,17 @@ import {
 
 export default function CampaignPage() {
 	const [campaign, setCampaign] = useState<PaginatedCampaignResponse | null>(null);
+	const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
+
 	const [selectedFilter, setSelectedFilter] = useState('Filter by');
 	const [campaignOptions, setCampaignOptions] = useState<string[]>([]);
 	const [searchedCampaignOptions, setSearchedCampaignOptions] = useState<string[]>([]);
+
+	// this one is for campaign search
+	const [searchCampaignByPartialName, setSearchCampaignByPartialName] =
+		useState<string>('');
+
+	// this one is for the search text inside the campaign filter
 	const [searchCampaignOptions, setSearchCampaignOptions] = useState<string>('');
 	const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
 	const [createCampaignObj, setCreateCampaignObj] = useState<CreateCampaign>({
@@ -84,6 +94,12 @@ export default function CampaignPage() {
 	const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
 	const [showCampaignDetailsModal, setShowCampaignDetailsModal] = useState(false);
 	const [showCampaignDeleteModal, setShowCampaignDeleteModal] = useState(false);
+
+	const [campaignFilter, setCampaignFilter] = useState({
+		exactName: '',
+		partialName: '',
+		status: '',
+	});
 
 	const handlePromptDelete = (campaignId: string) => {
 		setSelectedCampaignIDForDelete(campaignId);
@@ -147,15 +163,40 @@ export default function CampaignPage() {
 		}
 	}, [searchCampaignOptions]);
 
+	useEffect(() => {
+		if (!hasTruthyValue(campaignFilter)) {
+			setFilteredCampaigns([]);
+		} else {
+			filterCampaigns(campaignFilter).then((filteredCampaigns) => {
+				setFilteredCampaigns(filteredCampaigns as Campaign[]);
+			});
+		}
+	}, [campaignFilter]);
+
+	const campaignsToRender = filteredCampaigns?.length
+		? filteredCampaigns
+		: campaign?.data;
+
 	return (
 		<div className='flex flex-col gap-4'>
 			<div className='flex lg:flex-row flex-col  justify-between'>
-				{/* <div className='grid lg:grid-cols-3 grid-cols-1 gap-2 items-center '> */}
 				<div className='lg:flex items-center '>
 					{/* Campaign Search */}
 					<div className='relative rounded-full mr-4 w-[350px] bg-gray-50'>
 						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
-						<Input placeholder='Search Campaign' className='pl-8 rounded-full' />
+
+						<Input
+							placeholder='Search Campaign'
+							className='pl-8 rounded-full'
+							value={searchCampaignByPartialName}
+							onChange={({ target: { value } }) => {
+								setSearchCampaignByPartialName(value);
+								debounce(
+									() => setCampaignFilter((prev) => ({ ...prev, partialName: value })),
+									500
+								)();
+							}}
+						/>
 					</div>
 
 					{/* Campaign Status Filter */}
@@ -296,8 +337,12 @@ export default function CampaignPage() {
 				</div>
 
 				{/* Table rows */}
-				{campaign?.data?.length &&
-					campaign.data.map((campaign) => (
+				{hasTruthyValue(campaignFilter) && !filteredCampaigns.length ? (
+					<div className='text-center py-6'>
+						<p className='text-gray-500'>No campaigns found according to your filters.</p>
+					</div>
+				) : (
+					campaignsToRender?.map((campaign) => (
 						<div
 							key={campaign.id}
 							className='grid lg:grid-cols-7 grid-cols-1 gap-4 py-6 px-4 my-4 rounded-xl bg-white border border-gray-100 items-center'
@@ -457,32 +502,35 @@ export default function CampaignPage() {
 								</DropdownMenu>
 							</div>
 						</div>
-					))}
+					))
+				)}
 			</div>
 
 			{/* Pagination */}
-			<div className='flex items-center justify-between px-4 py-2'>
-				<div className='text-sm font-medium text-gray-500'>
-					Showing <span className='text-black'>1-10</span> of{' '}
-					<span className='text-black'>{campaign?.totalCount}</span>
+			{!hasTruthyValue(campaignFilter) && (
+				<div className='flex items-center justify-between px-4 py-2'>
+					<div className='text-sm font-medium text-gray-500'>
+						Showing <span className='text-black'>1-10</span> of{' '}
+						<span className='text-black'>{campaign?.totalCount}</span>
+					</div>
+					<div className='flex '>
+						<Button
+							variant='outline'
+							className='rounded-tr-none rounded-br-none border-r-0 text-sm font-medium px-3 py-2 text-gray-500  hover:text-gray-600'
+							size='sm'
+						>
+							Previous
+						</Button>
+						<Button
+							variant='outline'
+							className='rounded-tl-none rounded-bl-none text-sm font-medium px-6 py-2 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-800'
+							size='sm'
+						>
+							Next
+						</Button>
+					</div>
 				</div>
-				<div className='flex '>
-					<Button
-						variant='outline'
-						className='rounded-tr-none rounded-br-none border-r-0 text-sm font-medium px-3 py-2 text-gray-500  hover:text-gray-600'
-						size='sm'
-					>
-						Previous
-					</Button>
-					<Button
-						variant='outline'
-						className='rounded-tl-none rounded-bl-none text-sm font-medium px-6 py-2 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-800'
-						size='sm'
-					>
-						Next
-					</Button>
-				</div>
-			</div>
+			)}
 
 			{/* Create campaign modal */}
 			<Dialog
