@@ -110,3 +110,36 @@ export const deleteCampaignById = async (
 		return { message: 'Unknown error occurred', code: 500 };
 	}
 };
+
+export const filterCampaigns = async (filterQueryObject: {
+	exactName?: string;
+	partialName?: string;
+	status?: string;
+}): Promise<Campaign[] | ErrorResponse> => {
+	try {
+		const queryParams = new URLSearchParams();
+
+		if (filterQueryObject.exactName) {
+			queryParams.append('exactName', filterQueryObject.exactName);
+		}
+		if (filterQueryObject.partialName) {
+			queryParams.append('partialName', filterQueryObject.partialName);
+		}
+		if (filterQueryObject.status) {
+			queryParams.append('status', filterQueryObject.status);
+		}
+
+		const queryString = queryParams.toString();
+		const url = `${serverUrl}/campaigns/search/filters${
+			queryString ? `?${queryString}` : ''
+		}`;
+		const response = await fetch(url);
+		return response.json();
+	} catch (error) {
+		console.error('📣 -> file: index.ts:121 -> filterCampaigns -> error:', error);
+		if (error instanceof Error) {
+			return { message: error.message, code: 500 };
+		}
+		return { message: 'Unknown error occurred', code: 500 };
+	}
+};
